@@ -63,6 +63,7 @@ async def submit_form(
 
         # Perform validation
         report.validate()
+        report.upsert_report_spec(connection=None)
 
         return templates.TemplateResponse(
             "report_form.html",

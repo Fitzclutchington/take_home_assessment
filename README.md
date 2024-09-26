@@ -16,5 +16,9 @@ pip3 install -r requirements.txt
 # start server
 uvicorn main:app --reload 
 
-# navigate to 127.0.0.1 and test form
 ```
+
+You can then navigate to 127.0.0.1 and test the form. Some examples would be
+
+Submit with no date range and get an error
+Submit without outcomes or data_source for TypeIReport
