@@ -56,6 +56,9 @@ class ReportSpec:
     def validate(self):
         if len(self.report_ranges) == 0:
             ValueError("At least one report range is required")
+        for report_range in self.report_ranges:
+            if report_range.start > report_range.end:
+                raise ValueError("End date cannot come before start date")
 
 
 # subclasses handle individual reports' validation
@@ -103,8 +106,6 @@ class TypeIIIReportSpec(ReportSpec):
 
     def validate(self):
         super().validate()
-        if not self.model_group:
-            raise ValueError("Type III reports require a model group")
         if not self.data_source:
             raise ValueError("Type III reports require a data source")
         if not self.include_brands:

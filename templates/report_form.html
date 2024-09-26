@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form method="POST" action="/submit">
+
+    <label for="start_date">Start Date:</label>
+    <input type="date" name="start_date" required>
+    <br>
+    
+    <label for="end_date">End Date:</label>
+    <input type="date" name="end_date" required>
+    <br>
+
+    <label for="data_source">Data Source (optional):</label>
+    <input type="text" name="data_source">
+    <br>
+    
+    <label for="model_group">Model Group:</label>
+    <input type="text" name="model_group">
+    <br>
+    
+    <label for="outcomes">Outcomes (comma separated, optional):</label>
+    <input type="text" name="outcomes">
+    <br>
+    
+    <label for="include_brands">Include Brands (comma separated):</label>
+    <input type="text" name="include_brands">
+    <br>
+
+    
+    <button type="submit">Submit Report</button>
+</form>
+
+{% if message %}
+<p>{{ message }}</p>
+{% endif %}
+{% endblock %}
