@@ -1,15 +1,24 @@
+# Note: Base class was adjusted to ignore blackbox code
+
 from dataclasses import dataclass, field
 from typing import List, Optional, Union
 from datetime import datetime
 #from blackbox import parse_string_datetime, SnowflakeConnection
 
 
+# dummy functions so we can import this code
+def parse_string_datetime(time):
+    pass
+
+def upsert_to_spec_table(*args):
+    pass
+
 class FixedTime:
     def __init__(self, time: Union[datetime, str]):
         if isinstance(time, datetime):
             self.time = time
         else:
-            self.time = time #parse_string_datetime(time)
+            self.time = parse_string_datetime(time)
 
 
 @dataclass
@@ -31,17 +40,18 @@ class ReportSpec:
     report_ranges: List[TimeRange]
     outcomes: List[str]
 
-    # def upsert_report_spec(self, connection: SnowflakeConnection) -> None:
-    #     """Inserts row in report spec table with metadata"""
-    #     upsert_to_spec_table(
-    #         connection,
-    #         self.model_group,
-    #         self.outcomes,
-    #         self.report_type,
-    #         self.data_source,
-    #         self.report_ranges,
-    #         self.include_brands,
-    #     )
+    # removed type hint for importing
+    def upsert_report_spec(self, connection) -> None:
+        """Inserts row in report spec table with metadata"""
+        upsert_to_spec_table(
+            connection,
+            self.model_group,
+            self.outcomes,
+            self.report_type,
+            self.data_source,
+            self.report_ranges,
+            self.include_brands,
+        )
 
     def validate(self):
         if len(self.report_ranges) == 0:
