@@ -1,15 +1,15 @@
 from dataclasses import dataclass, field
 from typing import List, Optional, Union
 from datetime import datetime
-from blackbox import parse_string_datetime, SnowflakeConnection
+#from blackbox import parse_string_datetime, SnowflakeConnection
 
 
 class FixedTime:
-    def __init__(self, time: Union[datetime, AbstractTime, str]):
+    def __init__(self, time: Union[datetime, str]):
         if isinstance(time, datetime):
             self.time = time
         else:
-            self.time = parse_string_datetime(time)
+            self.time = time #parse_string_datetime(time)
 
 
 @dataclass
@@ -19,26 +19,29 @@ class TimeRange:
 
 # Base class to handle inserting into DB and shared validation logic
 # e.g, report range check
-@dataclass
+# using kw_only to handle ordering of attributes in subclasses
+@dataclass(kw_only=True)
 class ReportSpec:
     report_type: str
     data_source: str
-    model_group: Optional[str]
-    include_brands: List[str]
+    model_group: Optional[str] = None
+    # set this to None by default since instructions make no explicit mention
+    # until Type III reports
+    include_brands: Optional[List[str]] = None
     report_ranges: List[TimeRange]
     outcomes: List[str]
 
-    def upsert_report_spec(self, connection: SnowflakeConnection) -> None:
-        """Inserts row in report spec table with metadata"""
-        upsert_to_spec_table(
-            connection,
-            self.model_group,
-            self.outcomes,
-            self.report_type,
-            self.data_source,
-            self.report_ranges,
-            self.include_brands,
-        )
+    # def upsert_report_spec(self, connection: SnowflakeConnection) -> None:
+    #     """Inserts row in report spec table with metadata"""
+    #     upsert_to_spec_table(
+    #         connection,
+    #         self.model_group,
+    #         self.outcomes,
+    #         self.report_type,
+    #         self.data_source,
+    #         self.report_ranges,
+    #         self.include_brands,
+    #     )
 
     def validate(self):
         if len(self.report_ranges) == 0:
@@ -46,23 +49,29 @@ class ReportSpec:
 
 
 # subclasses handle individual reports' validation
-@dataclass
+# including "model_group" as an attribute forces this model type
+# to be included in the kwarg list
+# e.g. TypeIReportSpec(report_ranges=[d1, d2]) will fail because
+# model_group was not provided
+@dataclass(kw_only=True)
 class TypeIReportSpec(ReportSpec):
+    model_group: str
     report_type: str = "Type I"
     data_source: str = "SYNDICATED"
-    model_group: str
     outcomes: List[str] = field(default_factory=lambda: ["site_visits", "product_searches"])
+    
     def validate(self):
         super().validate()
+        # ensure model_group is not None
         if not self.model_group:
             raise ValueError("Type I reports require a model group")
 
 
-@dataclass
+@dataclass(kw_only=True)
 class TypeIIReportSpec(ReportSpec):
-    report_type: str = "Type II"
     data_source: str
     model_group: str
+    report_type: str = "Type II"
     outcomes: List[str] = field(default_factory=lambda: ["site_visits", "product_searches"])
 
     def validate(self):
@@ -73,13 +82,14 @@ class TypeIIReportSpec(ReportSpec):
             raise ValueError("Type II reports require a data source")
 
 
-@dataclass
+@dataclass(kw_only=True)
 class TypeIIIReportSpec(ReportSpec):
-    report_type: str = "Type III"
     data_source: str
-    model_group: str = None
     include_brands: List[str]
     outcomes: List[str] 
+    report_type: str = "Type III"
+    model_group: str = None
+    
 
     def validate(self):
         super().validate()
